@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Single Sign On Azure Services Demo</string>
+    <string name="action_settings">Settings</string>
+</resources>
