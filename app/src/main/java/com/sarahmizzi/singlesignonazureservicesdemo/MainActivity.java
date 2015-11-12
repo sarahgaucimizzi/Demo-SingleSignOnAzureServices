@@ -1,15 +1,26 @@
 package com.sarahmizzi.singlesignonazureservicesdemo;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.widget.Button;
+import com.facebook.CallbackManager;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
+import com.microsoft.windowsazure.mobileservices.authentication.MobileServiceAuthenticationProvider;
+import com.microsoft.windowsazure.mobileservices.authentication.MobileServiceUser;
+
+import java.net.MalformedURLException;
 
 public class MainActivity extends AppCompatActivity {
+    final String TAG = "MainActivity";
+    private MobileServiceClient mClient;
+    CallbackManager callbackManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,36 +28,66 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        toolbar.setVisibility(View.GONE);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        try {
+            mClient = new MobileServiceClient(
+                    "https://singlesignonazuredemo.azurewebsites.net",
+                    "088c3c25cb7f4ce5b5cc4093add357f6",
+                    this);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
         }
 
-        return super.onOptionsItemSelected(item);
+        callbackManager = CallbackManager.Factory.create();
+
+        Button signInFB = (Button) findViewById(R.id.sign_in_button);
+        signInFB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                /*LoginManager.getInstance().registerCallback(callbackManager,
+                        new FacebookCallback<LoginResult>() {
+                            @Override
+                            public void onSuccess(LoginResult loginResult) {
+                                // App code
+                                Log.d(TAG, "Login Successful");
+                            }
+
+                            @Override
+                            public void onCancel() {
+                                // App code
+                                Log.e(TAG, "Cancelled");
+                            }
+
+                            @Override
+                            public void onError(FacebookException exception) {
+                                // App code
+                                Log.e(TAG, "Error: " + exception.toString());
+                            }
+                        });*/
+
+                ListenableFuture<MobileServiceUser> mLogin = mClient.login(MobileServiceAuthenticationProvider.Google);
+
+                Futures.addCallback(mLogin, new FutureCallback<MobileServiceUser>() {
+                    @Override
+                    public void onFailure(Throwable exc) {
+                        Log.e(TAG, "Error" + exc.toString());
+                    }
+
+                    @Override
+                    public void onSuccess(MobileServiceUser user) {
+                        Log.d(TAG, "Successful");
+                        // TODO: createTable(); i.e. save user
+                    }
+                });
+            }
+        });
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 }
