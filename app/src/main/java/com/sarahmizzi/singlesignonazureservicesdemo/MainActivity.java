@@ -8,18 +8,24 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.AccessTokenSource;
 import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
+import com.facebook.Profile;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.gson.JsonObject;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
+import com.microsoft.windowsazure.mobileservices.UserAuthenticationCallback;
 import com.microsoft.windowsazure.mobileservices.authentication.MobileServiceAuthenticationProvider;
 import com.microsoft.windowsazure.mobileservices.authentication.MobileServiceUser;
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
@@ -37,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String SHAREDPREFFILE = "temp";
     public static final String USERIDPREF = "uid";
     public static final String TOKENPREF = "tkn";
+    private static JsonObject USER_FACEBOOK_TOKEN = null;
+    private String AUTHORIZATION_TOKEN = "";
 
     final String TAG = "MainActivity";
 
@@ -57,11 +65,13 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.setVisibility(View.GONE);
 
+
         try {
             mClient = new MobileServiceClient(
                     "https://singlesignonazuredemo.azure-mobile.net/",
                     "kYdexwFIuHLTlQXxNAbvrdhyOhRthu79",
                     this);
+
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
@@ -76,38 +86,61 @@ public class MainActivity extends AppCompatActivity {
 
         callbackManager = CallbackManager.Factory.create();
 
-        Button signInFB = (Button) findViewById(R.id.sign_in_button);
-        signInFB.setOnClickListener(new View.OnClickListener() {
+//        Button signInFB = (Button) findViewById(R.id.sign_in_button);
+//
+//        signInFB.setOnClickListener(new View.OnClickListener() {
+//        @Override
+//        public void onClick(View v) {
+//            profile  = Profile.getCurrentProfile().getCurrentProfile();
+//            if (profile == null) {
+//                // Authenticate passing false to load the current token cache if available.
+//                authenticate(false);
+//            }
+//            }
+//        });
+
+        final LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
+        loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
-            public void onClick(View v) {
-                //Perform login
-                ListenableFuture<MobileServiceUser> mLogin = mClient.login(MobileServiceAuthenticationProvider.Facebook);
+            public void onSuccess(LoginResult loginResult) {
+                String accessToken = loginResult.getAccessToken().getToken();
+                USER_FACEBOOK_TOKEN = new JsonObject();
+                USER_FACEBOOK_TOKEN.addProperty("Access token", accessToken);
+                AUTHORIZATION_TOKEN = accessToken;
 
-                Futures.addCallback(mLogin, new FutureCallback<MobileServiceUser>() {
-                    @Override
-                    public void onFailure(Throwable exc) {
-                        Log.e(TAG, "Error" + exc.toString());
-                    }
-
-                    @Override
-                    public void onSuccess(MobileServiceUser user) {
-                        Toast.makeText(getApplicationContext(), "Login Successfully", Toast.LENGTH_LONG).show();
-
-                        //Cache the user token
-                        cacheUserToken(mClient.getCurrentUser());
-
-                        // Get data from permissions
-                        getFacebookUserDetails();
-                    }
-                });
+                //Set the values obtained to mClient
+                mClient.setCurrentUser(new MobileServiceUser(loginResult.getAccessToken().getUserId()));
+                mClient.setCurrentUser(new MobileServiceUser(loginResult.getAccessToken().getToken()));
+                setUpMobileServiceClient();
             }
-        });
+
+            @Override
+            public void onCancel() {
+            }
+
+            @Override
+            public void onError(FacebookException e) {
+
+            }});
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        callbackManager.onActivityResult(requestCode, resultCode, data);
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+           super.onActivityResult(requestCode, resultCode, data);
+            callbackManager.onActivityResult(requestCode, resultCode, data);
+    }
+
+
+    public void setUpMobileServiceClient(){
+       mClient.login(MobileServiceAuthenticationProvider.Facebook);
+
+           cacheUserToken(mClient.getCurrentUser());
+           getFacebookUserDetails();
+
+           Intent intent = new Intent(MainActivity.this, LoggedInActivity.class);
+           intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+           startActivity(intent);
+           finish();
     }
 
     //FIXME This method was done just to check that the data is being stored in the Azure db
@@ -145,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences(SHAREDPREFFILE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(USERIDPREF, user.getUserId());
-        editor.putString(TOKENPREF, user.getAuthenticationToken());
+        editor.putString(TOKENPREF, AUTHORIZATION_TOKEN);
 
         editor.commit();
     }
@@ -170,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
         List<String> permissions = Arrays.asList("public_profile", "email", "user_birthday");
         String userID = mClient.getCurrentUser().getUserId();
         userID = userID.replace("Facebook:", "");
-        accessToken = new AccessToken(mClient.getCurrentUser().getAuthenticationToken(), "1185338404814767", userID, permissions, null, AccessTokenSource.WEB_VIEW, null, null);
+        accessToken = new AccessToken(AUTHORIZATION_TOKEN, "1185338404814767", userID, permissions, null, AccessTokenSource.WEB_VIEW, null, null);
         AccessToken.setCurrentAccessToken(accessToken);
         // Get Facebook Account User data as JSON Object using GRAPH API
         GraphRequest graphRequest = GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
@@ -202,4 +235,5 @@ public class MainActivity extends AppCompatActivity {
         graphRequest.setParameters(parameters);
         graphRequest.executeAsync();
     }
+
 }
