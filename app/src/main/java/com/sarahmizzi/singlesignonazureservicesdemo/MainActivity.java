@@ -61,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.setVisibility(View.GONE);
 
-
         try {
             mClient = new MobileServiceClient(
                     "https://singlesignonazuredemo.azure-mobile.net/",
@@ -197,10 +196,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void getFacebookUserDetails() {
         List<String> permissions = Arrays.asList("public_profile", "email", "user_birthday");
-//        String userID = mClient.getCurrentUser().getUserId();
-//        userID = userID.replace("Facebook:", "");
-//        accessToken = new AccessToken(AUTHORIZATION_TOKEN, "1185338404814767", userID, permissions, null, AccessTokenSource.WEB_VIEW, null, null);
-//        AccessToken.setCurrentAccessToken(accessToken);
+
         // Get Facebook Account User data as JSON Object using GRAPH API
         GraphRequest graphRequest = GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
             @Override

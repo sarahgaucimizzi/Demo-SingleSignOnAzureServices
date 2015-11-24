@@ -10,6 +10,26 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.sarahmizzi.singlesignonazureservicesdemo.LoggedInActivity"
-    tools:showIn="@layout/activity_logged_in">
+    tools:showIn="@layout/activity_logged_in"
+    android:background="@color/colorPrimary">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
+        android:textSize="40sp"
+        android:text="@string/welcome"
+        android:layout_marginTop="50dp"
+        android:layout_centerHorizontal="true"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/logout"
+        android:textColor="@android:color/white"
+        android:background="@color/colorAccent"
+        android:paddingLeft="30dp"
+        android:paddingRight="30dp"
+        android:layout_centerInParent="true"/>
 
 </RelativeLayout>
