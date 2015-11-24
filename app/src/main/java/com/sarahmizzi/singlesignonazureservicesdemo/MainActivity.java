@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
                 //Set the values obtained to mClient
                 mClient.setCurrentUser(new MobileServiceUser(loginResult.getAccessToken().getUserId()));
-                mClient.setCurrentUser(new MobileServiceUser(loginResult.getAccessToken().getToken()));
+                //mClient.setCurrentUser(new MobileServiceUser(loginResult.getAccessToken().getToken()));
                 setUpMobileServiceClient();
             }
 
@@ -201,10 +201,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void getFacebookUserDetails() {
         List<String> permissions = Arrays.asList("public_profile", "email", "user_birthday");
-        String userID = mClient.getCurrentUser().getUserId();
-        userID = userID.replace("Facebook:", "");
-        accessToken = new AccessToken(AUTHORIZATION_TOKEN, "1185338404814767", userID, permissions, null, AccessTokenSource.WEB_VIEW, null, null);
-        AccessToken.setCurrentAccessToken(accessToken);
+//        String userID = mClient.getCurrentUser().getUserId();
+//        userID = userID.replace("Facebook:", "");
+//        accessToken = new AccessToken(AUTHORIZATION_TOKEN, "1185338404814767", userID, permissions, null, AccessTokenSource.WEB_VIEW, null, null);
+//        AccessToken.setCurrentAccessToken(accessToken);
         // Get Facebook Account User data as JSON Object using GRAPH API
         GraphRequest graphRequest = GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
             @Override
