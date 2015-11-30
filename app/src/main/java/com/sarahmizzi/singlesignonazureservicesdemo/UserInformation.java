@@ -5,7 +5,7 @@ package com.sarahmizzi.singlesignonazureservicesdemo;
  */
 public class UserInformation {
     String Id;
-    String public_profile;
+    String name;
     String email;
     String user_birthday;
 }

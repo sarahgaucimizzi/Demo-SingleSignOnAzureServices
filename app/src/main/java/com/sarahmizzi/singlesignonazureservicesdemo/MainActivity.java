@@ -8,16 +8,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import com.facebook.AccessToken;
-import com.facebook.AccessTokenSource;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
-import com.facebook.Profile;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.gson.JsonObject;
@@ -81,19 +78,6 @@ public class MainActivity extends AppCompatActivity {
 
         callbackManager = CallbackManager.Factory.create();
 
-//        Button signInFB = (Button) findViewById(R.id.sign_in_button);
-//
-//        signInFB.setOnClickListener(new View.OnClickListener() {
-//        @Override
-//        public void onClick(View v) {
-//            profile  = Profile.getCurrentProfile().getCurrentProfile();
-//            if (profile == null) {
-//                // Authenticate passing false to load the current token cache if available.
-//                authenticate(false);
-//            }
-//            }
-//        });
-
         final LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
@@ -115,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(FacebookException e) {
-
             }});
     }
 
@@ -138,15 +121,20 @@ public class MainActivity extends AppCompatActivity {
            finish();
     }
 
-    //FIXME This method was done just to check that the data is being stored in the Azure db
-    private void createTable(String email, String userBirthday, String publicProfile) {
+    /**
+     * This method is used to store the user's data in Azure database
+     * @param name
+     * @param userBirthday
+     * @param email
+     */
+    private void createTable(String name, String userBirthday,String email) {
         //Get the Mobile Service instance to use
         userInformationTable = mClient.getTable(UserInformation.class);
 
         item = new UserInformation();
         item.email = email;
         item.user_birthday = userBirthday;
-        item.public_profile = publicProfile;
+        item.name = name;
 
         //insert new items in the table
         mClient.getTable(UserInformation.class).insert(item, new TableOperationCallback<UserInformation>() {
@@ -160,8 +148,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-
     }
 
     /**
@@ -213,9 +199,12 @@ public class MainActivity extends AppCompatActivity {
                         if (jsonObject.has("birthday")) {
                             birthDate = jsonObject.getString("birthday");
                         }
+
+                        createTable(name, birthDate, email);
                     } catch (JSONException e) {
                         Log.e(TAG, "Error parsing JSON", e);
                     }
+
                 } else {
                     Log.e(TAG, graphResponse.getError().getErrorMessage());
                 }
@@ -227,5 +216,4 @@ public class MainActivity extends AppCompatActivity {
         graphRequest.setParameters(parameters);
         graphRequest.executeAsync();
     }
-
 }
