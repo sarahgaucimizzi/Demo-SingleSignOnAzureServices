@@ -33,4 +33,17 @@
         android:layout_marginTop="30dp"
         android:layout_marginBottom="30dp" />
 
+    <Button
+        android:layout_marginTop="20dp"
+        android:layout_below="@+id/login_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/login_or_signup"
+        android:textColor="@android:color/white"
+        android:background="@color/colorAccent"
+        android:id="@+id/login_or_signup_button"
+        android:layout_centerHorizontal="true"
+        android:paddingLeft="30dp"
+        android:paddingRight="30dp"/>
+
 </RelativeLayout>

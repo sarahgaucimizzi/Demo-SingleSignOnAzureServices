@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -46,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
     MobileServiceTable<UserInformation> userInformationTable;
     UserInformation item;
 
-    AccessToken accessToken;
     String name, email, birthDate;
 
 
@@ -99,35 +99,48 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(FacebookException e) {
-            }});
+            }
+        });
+
+        Button loginOrSignUp = (Button) findViewById(R.id.login_or_signup_button);
+        loginOrSignUp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, LoginRegisterActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+            }
+        });
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data){
-           super.onActivityResult(requestCode, resultCode, data);
-            callbackManager.onActivityResult(requestCode, resultCode, data);
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
 
-    public void setUpMobileServiceClient(){
-       mClient.login(MobileServiceAuthenticationProvider.Facebook);
+    public void setUpMobileServiceClient() {
+        mClient.login(MobileServiceAuthenticationProvider.Facebook);
 
-           cacheUserToken(mClient.getCurrentUser());
-           getFacebookUserDetails();
+        cacheUserToken(mClient.getCurrentUser());
+        getFacebookUserDetails();
 
-           Intent intent = new Intent(MainActivity.this, LoggedInActivity.class);
-           intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-           startActivity(intent);
-           finish();
+        Intent intent = new Intent(MainActivity.this, LoggedInActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
     }
 
     /**
      * This method is used to store the user's data in Azure database
+     *
      * @param name
      * @param userBirthday
      * @param email
      */
-    private void createTable(String name, String userBirthday,String email) {
+    private void createTable(String name, String userBirthday, String email) {
         //Get the Mobile Service instance to use
         userInformationTable = mClient.getTable(UserInformation.class);
 

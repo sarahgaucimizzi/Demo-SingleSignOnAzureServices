@@ -6,4 +6,6 @@
     <string name="title_activity_logged_in">LoggedInActivity</string>
     <string name="welcome">Welcome</string>
     <string name="logout">Logout</string>
+    <string name="title_activity_login_register">LoginRegisterActivity</string>
+    <string name="login_or_signup">Login or Sign Up</string>
 </resources>
