@@ -101,17 +101,6 @@ public class MainActivity extends AppCompatActivity {
             public void onError(FacebookException e) {
             }
         });
-
-        Button loginOrSignUp = (Button) findViewById(R.id.login_or_signup_button);
-        loginOrSignUp.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, LoginRegisterActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                finish();
-            }
-        });
     }
 
     @Override
