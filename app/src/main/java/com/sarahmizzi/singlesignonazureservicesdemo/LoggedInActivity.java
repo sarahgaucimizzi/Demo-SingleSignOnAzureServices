@@ -26,7 +26,9 @@ public class LoggedInActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 LoginManager manager = LoginManager.getInstance();
+                //Logout
                 manager.logOut();
+
                 Intent intent = new Intent(LoggedInActivity.this, MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);

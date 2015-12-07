@@ -30,11 +30,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String SHAREDPREFFILE = "temp";
-    public static final String USERIDPREF = "uid";
-    public static final String TOKENPREF = "tkn";
-    private static JsonObject USER_FACEBOOK_TOKEN = null;
-    private String AUTHORIZATION_TOKEN = "";
 
     final String TAG = "MainActivity";
 
@@ -64,13 +59,6 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        // If user is already logged in
-        if (loadUserTokenCache(mClient)) {
-            Intent intent = new Intent(MainActivity.this, LoggedInActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            finish();
-        }
 
         callbackManager = CallbackManager.Factory.create();
 
@@ -78,15 +66,19 @@ public class MainActivity extends AppCompatActivity {
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
-                String accessToken = loginResult.getAccessToken().getToken();
-                USER_FACEBOOK_TOKEN = new JsonObject();
-                USER_FACEBOOK_TOKEN.addProperty("Access token", accessToken);
-                AUTHORIZATION_TOKEN = accessToken;
-
                 //Set the values obtained to mClient
                 mClient.setCurrentUser(new MobileServiceUser(loginResult.getAccessToken().getUserId()));
-                //mClient.setCurrentUser(new MobileServiceUser(loginResult.getAccessToken().getToken()));
-                setUpMobileServiceClient();
+
+                //Login via Azure
+                mClient.login(MobileServiceAuthenticationProvider.Facebook);
+
+                //Obtain user's details
+                getFacebookUserDetails();
+
+                Intent intent = new Intent(MainActivity.this, LoggedInActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
             }
 
             @Override
@@ -106,81 +98,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void setUpMobileServiceClient() {
-        mClient.login(MobileServiceAuthenticationProvider.Facebook);
-
-        cacheUserToken(mClient.getCurrentUser());
-        getFacebookUserDetails();
-
-        Intent intent = new Intent(MainActivity.this, LoggedInActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        finish();
-    }
-
-    /**
-     * This method is used to store the user's data in Azure database
-     *
-     * @param name
-     * @param userBirthday
-     * @param email
-     */
-    private void createTable(String name, String userBirthday, String email) {
-        //Get the Mobile Service instance to use
-        userInformationTable = mClient.getTable(UserInformation.class);
-
-        item = new UserInformation();
-        item.email = email;
-        item.user_birthday = userBirthday;
-        item.name = name;
-
-        //insert new items in the table
-        mClient.getTable(UserInformation.class).insert(item, new TableOperationCallback<UserInformation>() {
-            public void onCompleted(UserInformation entity, Exception exception, ServiceFilterResponse response) {
-                if (exception == null) {
-                    // Insert succeeded
-                    Log.e(TAG, "Insert Succeeded");
-                } else {
-                    // Insert failed
-                    Log.e(TAG, "Insert Failed");
-                }
-            }
-        });
-    }
-
-    /**
-     * This method stores the user id and token in a preference file that is marked private.
-     *
-     * @param user
-     */
-    private void cacheUserToken(MobileServiceUser user) {
-        SharedPreferences prefs = getSharedPreferences(SHAREDPREFFILE, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(USERIDPREF, user.getUserId());
-        editor.putString(TOKENPREF, AUTHORIZATION_TOKEN);
-
-        editor.commit();
-    }
-
-    private boolean loadUserTokenCache(MobileServiceClient client) {
-        SharedPreferences prefs = getSharedPreferences(SHAREDPREFFILE, Context.MODE_PRIVATE);
-        String userId = prefs.getString(USERIDPREF, "undefined");
-        if (userId == "undefined")
-            return false;
-        String token = prefs.getString(TOKENPREF, "undefined");
-        if (token == "undefined")
-            return false;
-
-        MobileServiceUser user = new MobileServiceUser(userId);
-        user.setAuthenticationToken(token);
-        client.setCurrentUser(user);
-
-        return true;
-    }
-
     public void getFacebookUserDetails() {
-        List<String> permissions = Arrays.asList("public_profile", "email", "user_birthday");
-
         // Get Facebook Account User data as JSON Object using GRAPH API
         GraphRequest graphRequest = GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
             @Override
@@ -214,4 +132,35 @@ public class MainActivity extends AppCompatActivity {
         graphRequest.setParameters(parameters);
         graphRequest.executeAsync();
     }
+
+    /**
+     * This method is used to store the user's data in Azure database
+     *
+     * @param name
+     * @param userBirthday
+     * @param email
+     */
+    private void createTable(String name, String userBirthday, String email) {
+        //Get the Mobile Service instance to use
+        userInformationTable = mClient.getTable(UserInformation.class);
+
+        item = new UserInformation();
+        item.email = email;
+        item.user_birthday = userBirthday;
+        item.name = name;
+
+        //insert new items in the table
+        mClient.getTable(UserInformation.class).insert(item, new TableOperationCallback<UserInformation>() {
+            public void onCompleted(UserInformation entity, Exception exception, ServiceFilterResponse response) {
+                if (exception == null) {
+                    // Insert succeeded
+                    Log.e(TAG, "Insert Succeeded");
+                } else {
+                    // Insert failed
+                    Log.e(TAG, "Insert Failed");
+                }
+            }
+        });
+    }
+
 }
