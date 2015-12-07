@@ -8,8 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -25,10 +23,8 @@ import com.microsoft.windowsazure.mobileservices.authentication.MobileServiceUse
 import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
 import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
 import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.List;
